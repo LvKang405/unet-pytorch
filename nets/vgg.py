@@ -61,7 +61,7 @@ def make_layers(cfg, batch_norm=False, in_channels = 3):
 # 64,64,512 -> 32,32,512 -> 32,32,512
 cfgs = {
     'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M']
-}
+}#训练流程
 
 
 def VGG16(pretrained, in_channels = 3, **kwargs):

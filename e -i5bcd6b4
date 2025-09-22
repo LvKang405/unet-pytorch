@@ -1,0 +1,51 @@
+[33mdbf9de2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m 移除对 utils/ManualDownload/ 的跟踪
+[33m417ae04[m Test
+[33m5bcd6b4[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m update seed
+[33md414e5b[m update seed
+[33mb3ed988[m update onnx predict
+[33m8ab3732[m update comment
+[33m3bcba54[m update voc_annotation.py
+[33m682b4a0[m update eval when train
+[33m5dacab8[m update voc_annotation.py and count
+[33m9e692c0[m update comment and FLOPs
+[33m016eaee[m update medical
+[33m216fa5b[m update pretrain
+[33m15481ce[m update lr
+[33m79c8000[m update a lot
+[33me0920e2[m update a lot
+[33m24bc43c[m update a lot
+[33me709f76[m update a lot
+[33m956d6cf[m update callback.py
+[33maec8b77[m add crop
+[33mc4cae4c[m Update README.md
+[33mb3e8329[m Update README.md
+[33m35fc59e[m Add files via upload
+[33md63078a[m Update utils.py
+[33mcfa6999[m Update callbacks.py
+[33maa1ad4f[m Update train_medical.py
+[33m0a3b5d8[m Update train.py
+[33m171b48d[m Add files via upload
+[33mff54e31[m Add files via upload
+[33m91b57a2[m Update README.md
+[33m4668a90[m Delete voc2unet.py
+[33mce1f69c[m Delete medical2pspnet.py
+[33mb281d7a[m Delete metrics.py
+[33mb6fba97[m Add files via upload
+[33m081aa4c[m Delete test.py
+[33m44415df[m Delete get_miou_prediction.py
+[33md148763[m Delete miou.py
+[33ma0632b8[m Update README.md
+[33m34c97c5[m Update unet.py
+[33mb426af8[m Add files via upload
+[33mba81268[m Update README.md
+[33md5ff808[m Update train.py
+[33m7e98a7e[m Update predict.py
+[33mf858e5e[m Delete video.py
+[33ma610a0c[m Delete FPS_test.py
+[33ma15acb6[m Add files via upload
+[33m6b5ce3b[m Update predict.py
+[33mbf67400[m Update README.md
+[33me1e621f[m Update README.md
+[33m05489a4[m Update README.md
+[33m255e443[m Add files via upload
+[33m0b24caa[m Initial commit
