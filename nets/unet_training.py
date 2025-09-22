@@ -56,11 +56,17 @@ def Dice_loss(inputs, target, beta=1, smooth = 1e-5):
     return dice_loss
 
 def weights_init(net, init_type='normal', init_gain=0.02):
-    def init_func(m):
-        classname = m.__class__.__name__
-        if hasattr(m, 'weight') and classname.find('Conv') != -1:
+    def init_func(m):#可以看作用weights_init函数初始化init_func函数
+        classname = m.__class__.__name__# 获取层的类名  # 获取当前层的类名（如 'Conv2d'、'BatchNorm2d'、'Linear' 等）
+
+        ## 后续通常会根据 classname 判断层类型，应用不同初始化方法
+        if hasattr(m, 'weight') and classname.find('Conv') != -1:# 如果类名中包含 'Conv'，则表示这是一个卷积层
             if init_type == 'normal':
-                torch.nn.init.normal_(m.weight.data, 0.0, init_gain)
+                torch.nn.init.normal_(m.weight.data, 0.0, init_gain)#将层的权重参数按正态分布（高斯分布）进行初始化。
+                #torch.nn.init.normal_：这是 PyTorch 内置的参数初始化函数，用于对张量进行正态分布初始化。函数名末尾的下划线 _ 表示这是一个 “原地操作”（in-place），即直接修改输入张量的值，而不是返回一个新的张量。
+                #m.weight.data：表示要初始化的权重参数。 这里的 m 是传入的神经网络层对象，m.weight 是该层的权重参数，m.weight.data 则是获取该权重参数的实际数据张量。
+                #0.0：表示正态分布的均值（mean）。在这里，均值被设置为 0.0，意味着初始化的权重参数将围绕 0 分布。
+                #init_gain：表示正态分布的标准差（standard deviation）。标准差决定了数据点围绕均值的分散程度。较小的标准差会使数据点更集中，较大的标准差则会使数据点更分散。在这里，init_gain 用作标准差的值。
             elif init_type == 'xavier':
                 torch.nn.init.xavier_normal_(m.weight.data, gain=init_gain)
             elif init_type == 'kaiming':
@@ -69,7 +75,7 @@ def weights_init(net, init_type='normal', init_gain=0.02):
                 torch.nn.init.orthogonal_(m.weight.data, gain=init_gain)
             else:
                 raise NotImplementedError('initialization method [%s] is not implemented' % init_type)
-        elif classname.find('BatchNorm2d') != -1:
+        elif classname.find('BatchNorm2d') != -1:# 如果类名中包含 'BatchNorm2d'，则表示这是一个批归一化层
             torch.nn.init.normal_(m.weight.data, 1.0, 0.02)
             torch.nn.init.constant_(m.bias.data, 0.0)
     print('initialize network with %s type' % init_type)
