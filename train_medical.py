@@ -71,7 +71,7 @@ if __name__ == "__main__":
     #   fp16        是否使用混合精度训练
     #               可减少约一半的显存、需要pytorch1.7.1以上
     #---------------------------------------------------------------------#
-    fp16            = False
+    fp16            = True#False
     #-----------------------------------------------------#
     #   num_classes     训练自己的数据集必须要修改的
     #                   自己需要的分类个数+1，如2+1#2个类别+1个背景
@@ -245,17 +245,17 @@ if __name__ == "__main__":
     #------------------------------------------------------#
     #   设置用到的显卡
     #------------------------------------------------------#
-    ngpus_per_node  = torch.cuda.device_count()
-    if distributed:
-        dist.init_process_group(backend="nccl")
-        local_rank  = int(os.environ["LOCAL_RANK"])
-        rank        = int(os.environ["RANK"])
-        device      = torch.device("cuda", local_rank)
-        if local_rank == 0:
+    ngpus_per_node  = torch.cuda.device_count()# torch.cuda.device_count() 是 PyTorch 中用于获取当前系统中可用 CUDA 设备（即 GPU）数量的函数。
+    if distributed:#是否使用sync_bn，DDP模式多卡可用
+        dist.init_process_group(backend="nccl")# 初始化分布式训练环境，backend指定了通信的后端，这里使用的是NCCL（NVIDIA Collective Communications Library），它是专门为NVIDIA GPU设计的高效通信库，适用于多GPU和多节点的分布式训练。
+        local_rank  = int(os.environ["LOCAL_RANK"])# os.environ 是一个包含系统环境变量的字典。在分布式训练中，"LOCAL_RANK" 通常用于指定当前进程在本地节点上的 GPU 设备编号。
+        rank        = int(os.environ["RANK"])# "RANK" 通常用于指定当前进程在整个分布式训练中的全局编号。
+        device      = torch.device("cuda", local_rank)# torch.device("cuda", local_rank) 创建了一个表示特定 GPU 设备的对象，其中 local_rank 指定了要使用的 GPU 编号。
+        if local_rank == 0:# local_rank == 0 通常表示主进程或主节点，在分布式训练中，主进程通常负责一些协调工作，比如打印日志、保存模型等。
             print(f"[{os.getpid()}] (rank = {rank}, local_rank = {local_rank}) training...")
             print("Gpu Device Count : ", ngpus_per_node)
     else:
-        device          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        device          = torch.device('cuda' if torch.cuda.is_available() else 'cpu')# torch.device('cuda' if torch.cuda.is_available() else 'cpu') 这行代码的作用是根据当前系统的硬件环境，动态选择计算设备。如果系统中有可用的 CUDA 设备（即 NVIDIA GPU），则选择 'cuda' 作为计算设备，否则选择 'cpu' 作为计算设备。
         local_rank      = 0
         rank            = 0
 
@@ -270,14 +270,26 @@ if __name__ == "__main__":
         else:
             download_weights(backbone)
 
-    model = Unet(num_classes=num_classes, pretrained=pretrained, backbone=backbone).train()
-    if not pretrained:
-        weights_init(model)
-    if model_path != '':
+    model = Unet(num_classes=num_classes, pretrained=pretrained, backbone=backbone).train()#  #  backbone： 主干网络选择 -> 在深度学习（尤其是计算机视觉）中，主干网络（Backbone Network） 是指模型中负责特征提取的核心部分，主要作用是将原始输入（如图像）通过一系列卷积、池化等操作，转化为具有语义信息的特征向量或特征图，为后续的任务层（如分类、检测、分割等）提供基础特征。
+    # 创建 U-Net 模型实例并设置为训练模式
+# model = Unet(
+#     num_classes=num_classes,  # 指定模型输出的类别数量（根据任务需求设置，如语义分割中的类别数）
+#     pretrained=pretrained,    # 是否使用预训练权重（布尔值：True/False，预训练权重通常基于 ImageNet 等数据集）
+#     backbone=backbone         # 指定骨干网络类型（如 'vgg16'、'resnet50' 等，决定 U-Net 的编码器部分）
+# ).train()  # 将模型设置为训练模式（启用 dropout、批归一化的训练行为等）
+    if not pretrained:# 如果没有使用预训练权重，则初始化模型权重
+        #pretrained      是否使用主干网络的预训练权重，此处使用的是主干的权重，因此是在模型构建的时候进行加载的。
+        weights_init(model)#model为Unet 类的实例，本质上属于 torch.nn.Module 类型（通过继承关系）。
+        #weights_init 函数用于初始化神经网络模型的权重参数。它通过遍历模型的各个层，根据层的类型（如卷积层、批归一化层等）应用不同的初始化方法，从而为模型的训练提供一个良好的起点。
+        # 具体来说，weights_init 函数会检查每一层的类名（如 'Conv'、'BatchNorm2d' 等），并根据指定的初始化类型（如 'normal'、'xavier'、'kaiming' 等）对权重进行初始化。
+        # 这种初始化方法有助于改善模型的收敛速度和性能，避免梯度消失或爆炸等问题。
+        
+
+    if model_path != '':# 如果指定了模型权重路径，则加载该权重  #初始化为空了
         #------------------------------------------------------#
         #   权值文件请看README，百度网盘下载
         #------------------------------------------------------#
-        if local_rank == 0:
+        if local_rank == 0:#单卡模式为0
             print('Load weights {}.'.format(model_path))
         
         #------------------------------------------------------#
@@ -305,10 +317,12 @@ if __name__ == "__main__":
     #----------------------#
     #   记录Loss
     #----------------------#
-    if local_rank == 0:
+    if local_rank == 0:# 初始化为0，此处执行
         time_str        = datetime.datetime.strftime(datetime.datetime.now(),'%Y_%m_%d_%H_%M_%S')
         log_dir         = os.path.join(save_dir, "loss_" + str(time_str))
         loss_history = LossHistory(log_dir, model, input_shape=input_shape, val_loss_flag = False)
+        # LossHistory 是一个用于记录和可视化训练过程中损失值的类。它通过将损失值保存到指定的日志目录中，并生成相应的图表，帮助用户直观地了解模型的训练情况和性能变化。 
+        # input_shape = [512, 512]
     else:
         loss_history = None
 
@@ -316,23 +330,25 @@ if __name__ == "__main__":
     #   torch 1.2不支持amp，建议使用torch 1.7.1及以上正确使用fp16
     #   因此torch1.2这里显示"could not be resolve"
     #------------------------------------------------------------------#
+    #amp：是Automatic Mixed Precision（自动混合精度）的缩写，是 PyTorch 提供的一种训练技术。它能自动在训练过程中混合使用单精度（FP32）和半精度（FP16）浮点数进行计算，在减少显存占用的同时保持模型训练精度，还能加快训练速度。
+    # 通过使用 AMP，模型的部分计算（如前向传播和反向传播）可以在 FP16 下进行，而其他关键计算（如权重更新）仍然在 FP32 下进行，从而在不显著影响模型性能的情况下提高训练效率。
     if fp16:
         from torch.cuda.amp import GradScaler as GradScaler
         scaler = GradScaler()
     else:
         scaler = None
 
-    model_train     = model.train()
+    model_train     = model.train()# # 将模型设置为训练模式
     #----------------------------#
     #   多卡同步Bn
     #----------------------------#
-    if sync_bn and ngpus_per_node > 1 and distributed:
+    if sync_bn and ngpus_per_node > 1 and distributed:# sync_bn     是否使用sync_bn，DDP模式多卡可用
         model_train = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model_train)
     elif sync_bn:
         print("Sync_bn is not support in one gpu or not distributed.")
 
-    if Cuda:
-        if distributed:
+    if Cuda:# Cuda    是否使用Cuda #Cuda = True
+        if distributed:# distributed     用于指定是否使用单机多卡分布式运行 #distributed     = False
             #----------------------------#
             #   多卡平行运行
             #----------------------------#
@@ -350,7 +366,7 @@ if __name__ == "__main__":
         train_lines = f.readlines()
     num_train   = len(train_lines)
     
-    if local_rank == 0:
+    if local_rank == 0: #local_rank = 0
         show_config(
             num_classes = num_classes, backbone = backbone, model_path = model_path, input_shape = input_shape, \
             Init_Epoch = Init_Epoch, Freeze_Epoch = Freeze_Epoch, UnFreeze_Epoch = UnFreeze_Epoch, Freeze_batch_size = Freeze_batch_size, Unfreeze_batch_size = Unfreeze_batch_size, Freeze_Train = Freeze_Train, \

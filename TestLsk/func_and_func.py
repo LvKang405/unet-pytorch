@@ -24,3 +24,17 @@ inner_func2 = func1()
 layers = ["layer1", "layer2", "layer3"]
 for layer in layers:
     inner_func2(layer)  # 手动对每个"层"调用func2
+
+
+def func1(a):
+    print("func1")
+    
+    # 定义内部函数func2（带参数）
+    def func2(m):
+        print(f"func2 处理: {a*m}")
+    
+    # 返回内部函数，使其可以被外部访问
+    return func2
+
+f2 = func1(10)
+f2(3)
